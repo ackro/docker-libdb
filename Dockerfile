@@ -1,9 +1,8 @@
-# Build berkelydb 4.8.30 for Alpine Linux
-FROM alpine as libdb4
+# Build berkelydb for Alpine Linux
+FROM ackro/alpine-build:latest as buildenv
 
 ENV LIBDB_VERSION=4.8.30.NC
 
-RUN apk add --no-cache --virtual .build autoconf automake build-base file
 RUN wget http://download.oracle.com/berkeley-db/db-${LIBDB_VERSION}.tar.gz
 RUN mkdir -p /opt/db-${LIBDB_VERSION}/build
 COPY db-4.8.30-rename-atomic-compare-exchange.patch /opt
@@ -20,7 +19,7 @@ RUN ../dist/configure --prefix=/opt/db-${LIBDB_VERSION}/build --enable-cxx --dis
 RUN make -j3 && make install && make uninstall_docs
 
 # Create image
-FROM alpine
+FROM alpine:latest
 
-COPY --from=libdb4 /opt/db-*/build /usr/local/
+COPY --from=buildenv /opt/db-*/build /usr/local/
 CMD ["/bin/sh"]
